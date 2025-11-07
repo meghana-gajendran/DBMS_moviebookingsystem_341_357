@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>SQL Queries Demonstration</h2>
+
+<div class="row mt-4">
+    <!-- Nested Query -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5>Nested Query</h5>
+                <small>Movies with above average rating</small>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Movie</th>
+                            <th>Rating</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for movie in nested_query %}
+                        <tr>
+                            <td>{{ movie.Title }}</td>
+                            <td>{{ movie.Rating }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Query -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5>Join Query</h5>
+                <small>Show details with movie and theatre info</small>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Movie</th>
+                            <th>Theatre</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for show in join_query %}
+                        <tr>
+                            <td>{{ show.Title }}</td>
+                            <td>{{ show.Theatre }}</td>
+                            <td>{{ show.Show_Date }}</td>
+                            <td>{{ show.Show_Time }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aggregate Query -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5>Aggregate Query</h5>
+                <small>Revenue by Theatre</small>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Theatre</th>
+                            <th>Bookings</th>
+                            <th>Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for theatre in aggregate_query %}
+                        <tr>
+                            <td>{{ theatre.Theatre }}</td>
+                            <td>{{ theatre.Total_Bookings }}</td>
+                            <td>₹{{ "%.2f"|format(theatre.Total_Revenue) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header bg-info text-white">
+        <h5>Function Demonstration</h5>
+    </div>
+    <div class="card-body">
+        <p><strong>Average Movie Rating (using function):</strong> {{ "%.2f"|format(avg_rating) }}/10</p>
+    </div>
+</div>
+{% endblock %}

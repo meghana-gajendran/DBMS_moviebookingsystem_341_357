@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Shows for {{ movie.Title }} - MovieBook{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Shows for: {{ movie.Title }}</h1>
+        <a href="{{ url_for('movies') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Movies
+        </a>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <img src="{{ movie.Image_URL | default('https://via.placeholder.com/200x300/667eea/ffffff?text=No+Image', true) }}"
+                 class="img-fluid rounded" alt="{{ movie.Title }}">
+        </div>
+        <div class="col-md-9">
+            <h3>{{ movie.Title }}</h3>
+            <p class="text-muted">
+                <strong>Genre:</strong> {{ movie.Genre }}<br>
+                <strong>Language:</strong> {{ movie.Language }}<br>
+                <strong>Duration:</strong> {{ movie.Duration }} minutes<br>
+                <strong>Rating:</strong> {{ movie.Rating }}/10
+            </p>
+        </div>
+    </div>
+
+    <h3>Available Shows</h3>
+    
+    {% if shows %}
+    <div class="row">
+        {% for show in shows %}
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-8">
+                            <h5 class="card-title">{{ show.Theatre_Name }}</h5>
+                            <p class="card-text">
+                                Screen {{ show.Screen_Number }}<br>
+                                {{ show.Show_Date }} at {{ show.Show_Time }}<br>
+                                <strong class="text-primary">₹{{ show.Price }}</strong><br>
+                                <small class="text-muted">{{ show.Available_Seats }} seats available</small>
+                            </p>
+                        </div>
+                        <div class="col-4 text-end">
+                            {% if show.Available_Seats > 0 %}
+                                <a href="{{ url_for('book_ticket', show_id=show.Show_ID) }}" 
+                                   class="btn btn-primary mt-3">
+                                    Book Now
+                                </a>
+                            {% else %}
+                                <button class="btn btn-secondary mt-3" disabled>
+                                    Sold Out
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i>
+        No shows available for this movie at the moment.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

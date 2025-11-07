@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+
+{% block title %}Book Tickets - MovieBook{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-ticket-alt"></i> Book Your Tickets</h4>
+                </div>
+                <div class="card-body">
+                    {% if show %}
+                    <!-- Show Details -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <img src="{{ show.Image_URL | default('https://via.placeholder.com/200x300/667eea/ffffff?text=No+Image', true) }}"
+                                 class="img-fluid rounded" alt="{{ show.Title }}">
+                        </div>
+                        <div class="col-md-9">
+                            <h3>{{ show.Title }}</h3>
+                            <p class="text-muted">
+                                <i class="fas fa-theater-masks"></i> <strong>Theatre:</strong> {{ show.Theatre_Name }}<br>
+                                <i class="fas fa-desktop"></i> <strong>Screen:</strong> {{ show.Screen_Number }}<br>
+                                <i class="fas fa-calendar"></i> <strong>Date:</strong> {{ show.Show_Date }}<br>
+                                <i class="fas fa-clock"></i> <strong>Time:</strong> {{ show.Show_Time }}<br>
+                                <i class="fas fa-tag"></i> <strong>Price:</strong> ₹{{ show.Price }} per ticket
+                            </p>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> 
+                                <strong id="available-seats-count">{{ show.Total_Seats }}</strong> seats available
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Seat Selection -->
+                    <div class="seat-selection mb-4">
+                        <h5 class="mb-3">Select Your Seats</h5>
+                        
+                        <!-- Screen -->
+                        <div class="screen-container text-center mb-4">
+                            <div class="screen bg-dark text-white py-2 mx-auto mb-3" style="max-width: 400px; border-radius: 5px; font-size: 0.9rem;">
+                                <i class="fas fa-film me-1"></i> SCREEN
+                            </div>
+                        </div>
+
+                        <!-- Seat Map -->
+                        <div class="seat-map">
+                            <form id="booking-form" method="POST">
+                                {% if seats %}
+                                    <div class="text-center mb-3">
+                                        <small class="text-muted">Click on available seats (blue) to select them</small>
+                                    </div>
+                                    
+                                    <!-- Seat Layout -->
+                                    <div class="seat-layout-container">
+                                        {% set rows = {} %}
+                                        {% for seat in seats %}
+                                            {% set row = seat.Seat_Number[0] %}
+                                            {% if row not in rows %}
+                                                {% set _ = rows.update({row: []}) %}
+                                            {% endif %}
+                                            {% set _ = rows[row].append(seat) %}
+                                        {% endfor %}
+                                        
+                                        {% for row_letter, row_seats in rows.items()|sort %}
+                                            <div class="seat-row">
+                                                <div class="row-label">{{ row_letter }}</div>
+                                                {% for seat in row_seats|sort(attribute='Seat_Number') %}
+                                                    <div class="seat-container">
+                                                        <input type="checkbox" 
+                                                               class="btn-check seat-checkbox" 
+                                                               name="seats" 
+                                                               id="seat-{{ seat.Seat_Number }}" 
+                                                               value="{{ seat.Seat_Number }}"
+                                                               autocomplete="off"
+                                                               {% if seat.Is_Booked %}disabled{% endif %}>
+                                                        <label class="btn seat-btn {% if seat.Is_Booked %}btn-secondary booked-seat{% else %}btn-outline-primary available-seat{% endif %}" 
+                                                               for="seat-{{ seat.Seat_Number }}"
+                                                               data-seat-number="{{ seat.Seat_Number }}">
+                                                            {{ seat.Seat_Number[1:] }}
+                                                        </label>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-warning text-center">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Seats are being loaded...
+                                    </div>
+                                {% endif %}
+
+                                <!-- Legend -->
+                                <div class="seat-legend text-center mt-4 p-2 bg-light rounded">
+                                    <div class="d-inline-block mx-2">
+                                        <span class="badge bg-primary">Available</span>
+                                    </div>
+                                    <div class="d-inline-block mx-2">
+                                        <span class="badge bg-success">Selected</span>
+                                    </div>
+                                    <div class="d-inline-block mx-2">
+                                        <span class="badge bg-secondary">Booked</span>
+                                    </div>
+                                </div>
+
+                                <!-- Selection Summary -->
+                                <div class="selection-summary mt-4 p-3 bg-primary text-white rounded">
+                                    <h6 class="mb-2"><i class="fas fa-shopping-cart me-1"></i>Booking Summary</h6>
+                                    <div class="row text-center">
+                                        <div class="col-md-4">
+                                            <small>Selected Seats:</small>
+                                            <div id="selected-seats-list" class="fw-bold">None</div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <small>Number of Seats:</small>
+                                            <div id="selected-count" class="fw-bold">0</div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <small>Total Amount:</small>
+                                            <div class="fw-bold">₹<span id="total-amount">0</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Payment Method -->
+                                <div class="row mt-4">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="payment_mode" class="form-label">Payment Method</label>
+                                            <select class="form-select" id="payment_mode" name="payment_mode" required>
+                                                <option value="">Select payment method</option>
+                                                <option value="Credit Card">Credit Card</option>
+                                                <option value="Debit Card">Debit Card</option>
+                                                <option value="UPI">UPI</option>
+                                                <option value="Net Banking">Net Banking</option>
+                                                <option value="Cash">Cash</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mt-4 pt-1">
+                                            {% if session.user_id %}
+                                                <button type="submit" class="btn btn-success btn-lg w-100" id="book-btn" disabled>
+                                                    <i class="fas fa-credit-card me-1"></i> Confirm - ₹<span id="confirm-amount">0</span>
+                                                </button>
+                                            {% else %}
+                                                <div class="alert alert-warning text-center py-2">
+                                                    Please <a href="{{ url_for('login') }}">login</a> to book tickets.
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-danger text-center">
+                        Show not found or no longer available.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="text-center mt-3">
+                <a href="{{ url_for('movies') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Back to Movies
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const seatCheckboxes = document.querySelectorAll('.seat-checkbox');
+        const selectedSeatsList = document.getElementById('selected-seats-list');
+        const selectedCount = document.getElementById('selected-count');
+        const totalAmount = document.getElementById('total-amount');
+        const confirmAmount = document.getElementById('confirm-amount');
+        const bookBtn = document.getElementById('book-btn');
+        const pricePerTicket = {{ show.Price if show else 0 }};
+        
+        function updateSelectionSummary() {
+            const selectedSeats = Array.from(seatCheckboxes)
+                .filter(checkbox => checkbox.checked)
+                .map(checkbox => checkbox.value);
+            
+            // Sort selected seats for better display
+            selectedSeats.sort((a, b) => {
+                const rowA = a.charAt(0);
+                const rowB = b.charAt(0);
+                const numA = parseInt(a.slice(1));
+                const numB = parseInt(b.slice(1));
+                
+                if (rowA !== rowB) {
+                    return rowA.localeCompare(rowB);
+                }
+                return numA - numB;
+            });
+            
+            const count = selectedSeats.length;
+            const total = count * pricePerTicket;
+            
+            selectedSeatsList.textContent = selectedSeats.length > 0 ? selectedSeats.join(', ') : 'None';
+            selectedCount.textContent = count;
+            totalAmount.textContent = total.toFixed(2);
+            confirmAmount.textContent = total.toFixed(2);
+            
+            bookBtn.disabled = count === 0;
+            bookBtn.className = count > 0 ? 'btn btn-success btn-lg w-100' : 'btn btn-secondary btn-lg w-100';
+            
+            // Update seat visual states
+            seatCheckboxes.forEach(checkbox => {
+                if (!checkbox.disabled) {
+                    const label = checkbox.nextElementSibling;
+                    if (checkbox.checked) {
+                        label.classList.remove('btn-outline-primary');
+                        label.classList.add('btn-success');
+                    } else {
+                        label.classList.remove('btn-success');
+                        label.classList.add('btn-outline-primary');
+                    }
+                }
+            });
+        }
+        
+        seatCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateSelectionSummary);
+        });
+        
+        updateSelectionSummary();
+    });
+</script>
+
+<style>
+/* Seat Layout */
+.seat-map {
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.seat-layout-container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 10px;
+}
+
+.seat-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: 5px;
+    min-height: 35px;
+    padding: 2px 0;
+}
+
+.row-label {
+    width: 25px;
+    font-weight: bold;
+    color: #2c3e50;
+    font-size: 0.8rem;
+    text-align: center;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+.seat-container {
+    margin: 1px;
+    flex-shrink: 0;
+}
+
+.seat-btn {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 0.65rem !important;
+    font-weight: bold !important;
+    border-radius: 4px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-width: 1px !important;
+}
+
+/* Seat States */
+.available-seat:hover {
+    transform: scale(1.1);
+}
+
+.selected-seat {
+    background-color: #198754 !important;
+    border-color: #198754 !important;
+    color: white !important;
+    transform: scale(1.05);
+}
+
+.booked-seat {
+    background-color: #6c757d !important;
+    border-color: #6c757d !important;
+    color: white !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+}
+
+/* Screen */
+.screen {
+    background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+    font-size: 0.8rem !important;
+}
+
+/* Selection Summary */
+.selection-summary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .seat-btn {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 0.6rem !important;
+    }
+    
+    .row-label {
+        width: 20px;
+        font-size: 0.7rem;
+        margin-right: 5px;
+    }
+    
+    .seat-row {
+        margin-bottom: 3px;
+        min-height: 30px;
+    }
+}
+
+/* Ensure proper horizontal layout */
+.seat-layout-container {
+    display: block;
+    width: fit-content;
+    margin: 0 auto;
+}
+
+.seat-row {
+    white-space: nowrap;
+    overflow: visible;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel - MovieBook{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4"><i class="fas fa-cogs"></i> Admin Panel</h1>
+    
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Add New Movie</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('add_movie') }}">
+                        <div class="mb-3">
+                            <label class="form-label">Movie Title</label>
+                            <input type="text" class="form-control" name="title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Image URL</label>
+                            <input type="text" class="form-control" name="image_url" placeholder="https://...">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Language</label>
+                                    <input type="text" class="form-control" name="language" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Genre</label>
+                                    <input type="text" class="form-control" name="genre" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Duration (minutes)</label>
+                                    <input type="number" class="form-control" name="duration" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Rating</label>
+                                    <input type="number" step="0.1" min="0" max="10" class="form-control" name="rating" required>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-save"></i> Add Movie
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-calendar-plus"></i> Add New Show</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('add_show') }}">
+                        <div class="mb-3">
+                            <label class="form-label">Select Movie</label>
+                            <select class="form-select" name="movie_id" required>
+                                <option value="">-- Select a Movie --</option>
+                                {% for movie in all_movies %}
+                                <option value="{{ movie.Movie_ID }}">{{ movie.Title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Screen ID</label>
+                            <input type="number" class="form-control" name="screen_id" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Show Date</label>
+                                    <input type="date" class="form-control" name="show_date" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Show Time</label>
+                                    <input type="time" class="form-control" name="show_time" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Price (₹)</label>
+                            <input type="number" step="0.01" class="form-control" name="price" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-save"></i> Add Show
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <h2 class="mb-3">Quick Stats</h2>
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ stats.total_movies | default(0) }}</h4>
+                            <p>Total Movies</p>
+                        </div>
+                        <i class="fas fa-film fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ stats.total_shows | default(0) }}</h4>
+                            <p>Total Shows</p>
+                        </div>
+                        <i class="fas fa-calendar fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ stats.total_bookings | default(0) }}</h4>
+                            <p>Total Bookings</p>
+                        </div>
+                        <i class="fas fa-ticket-alt fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>₹{{ "%.2f"|format(stats.total_revenue | default(0)) }}</h4>
+                            <p>Total Revenue</p>
+                        </div>
+                        <i class="fas fa-money-bill-wave fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-5">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-search-dollar"></i> Check Movie Revenue</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin_dashboard') }}">
+                        <div class="mb-3">
+                            <label class="form-label">Select Movie</label>
+                            <select class="form-select" name="movie_id" required>
+                                <option value="">-- Select a Movie --</option>
+                                {% for movie in all_movies %}
+                                <option value="{{ movie.Movie_ID }}">{{ movie.Title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-dark w-100">Check Revenue</button>
+                    </form>
+                    
+                    {% if current_revenue is not none %}
+                    <div class="alert alert-success mt-3">
+                        Total revenue for selected movie: <strong>₹{{ "%.2f"|format(current_revenue) }}</strong>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}

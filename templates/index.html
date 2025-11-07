@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2>Featured Movies</h2>
+        <div class="row">
+            {% for movie in featured_movies %}
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ movie.Title }}</h5>
+                        <p class="card-text">
+                            <strong>Genre:</strong> {{ movie.Genre }}<br>
+                            <strong>Rating:</strong> {{ movie.Rating }}/10<br>
+                            <strong>Duration:</strong> {{ movie.Duration }} mins
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <h2>Upcoming Shows</h2>
+        {% for show in upcoming_shows %}
+        <div class="card mb-2">
+            <div class="card-body">
+                <h6>{{ show.Title }}</h6>
+                <small class="text-muted">
+                    {{ show.Theatre_Name }}<br>
+                    {{ show.Show_Date }} at {{ show.Show_Time }}<br>
+                    ₹{{ show.Price }}
+                </small>
+                <a href="{{ url_for('book_ticket', show_id=show.Show_ID) }}" class="btn btn-sm btn-primary mt-2">Book Now</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
