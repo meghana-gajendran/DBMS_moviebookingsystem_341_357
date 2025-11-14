@@ -61,7 +61,7 @@ The core of this project is its relational database, which demonstrates advanced
 
 1.  **Clone the repo:**
     ```bash
-    git clone [https://github.com/meghana-gajendran/DBMS_moviebookingsystem_341_357.git](https://github.com/meghana-gajendran/DBMS_moviebookingsystem_341_357.git)
+    git clone https://github.com/meghana-gajendran/DBMS_moviebookingsystem_341_357.git
     cd DBMS_moviebookingsystem_341_357
     ```
 2.  **Create a virtual environment:**
